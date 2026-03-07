@@ -34,29 +34,6 @@ function FileLink({
   );
 }
 
-function ImagePreview({
-  url,
-  alt,
-}: {
-  url?: string | null;
-  alt: string;
-}) {
-  if (!url) return <span className="text-slate-400 text-xs">Not available</span>;
-
-  return (
-    <a href={url} target="_blank" rel="noreferrer" className="block w-fit">
-      <img
-        src={url}
-        alt={alt}
-        className="h-14 w-14 rounded-md border border-slate-200 object-cover hover:opacity-80"
-        onError={(e) => {
-          e.currentTarget.style.display = "none";
-        }}
-      />
-    </a>
-  );
-}
-
 function Th({ children }: { children: React.ReactNode }) {
   return (
     <th className="px-3 py-3 text-left text-[12px] font-semibold whitespace-nowrap text-slate-700">
@@ -68,18 +45,15 @@ function Th({ children }: { children: React.ReactNode }) {
 function Td({
   children,
   long = false,
-  center = false,
 }: {
   children: React.ReactNode;
   long?: boolean;
-  center?: boolean;
 }) {
   return (
     <td
       className={[
         "px-3 py-3 align-top text-[13px] text-slate-700",
         long ? "max-w-[180px] break-words whitespace-normal" : "whitespace-nowrap",
-        center ? "text-center" : "",
       ].join(" ")}
     >
       {children}
@@ -168,9 +142,6 @@ export default function EmployeeDetails() {
             className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-200"
           />
         </div>
-        <div className="mt-2 text-xs text-slate-500">
-          Search updates automatically after typing stops
-        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -184,19 +155,14 @@ export default function EmployeeDetails() {
         {loading ? (
           <div className="p-6 text-sm text-slate-500">Loading employees...</div>
         ) : error ? (
-          <div className="p-6 text-sm text-red-600">
-            {error}
-            <div className="mt-2 text-xs text-slate-500">
-              Check API URL in <b>.env</b> and backend CORS.
-            </div>
-          </div>
+          <div className="p-6 text-sm text-red-600">{error}</div>
         ) : items.length === 0 ? (
           <div className="p-6 text-sm text-slate-500">No employees found.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-max min-w-full border-separate border-spacing-0 text-sm">
               <thead className="sticky top-0 z-10 bg-slate-50">
-                <tr className="border-b border-slate-200">
+                <tr>
                   <Th>ID</Th>
                   <Th>Full Name</Th>
                   <Th>Qualification</Th>
@@ -239,7 +205,7 @@ export default function EmployeeDetails() {
                   <Th>Medical Report</Th>
                   <Th>Medical Issues</Th>
                   <Th>Documents</Th>
-                  <Th>Cheque Preview</Th>
+                  <Th>Cheque</Th>
                 </tr>
               </thead>
 
@@ -257,78 +223,44 @@ export default function EmployeeDetails() {
                     <Td>{emp.latest_qualification}</Td>
                     <Td>{emp.email}</Td>
                     <Td>{emp.phone_number}</Td>
-
                     <Td long>{emp.address}</Td>
                     <Td>{emp.city}</Td>
                     <Td>{emp.state}</Td>
                     <Td>{emp.postal_code}</Td>
-
                     <Td>{emp.aadhar_name}</Td>
                     <Td>{emp.aadhar_number}</Td>
-
                     <Td>{emp.passport_number ?? "-"}</Td>
                     <Td>{emp.passport_validity ?? "-"}</Td>
-
                     <Td>{emp.pan_number}</Td>
-
                     <Td>{emp.father_name}</Td>
                     <Td>{emp.mother_name}</Td>
-
                     <Td>{emp.siblings}</Td>
                     <Td>{emp.local_guardian}</Td>
-
                     <Td>{emp.bank_account_holder_name}</Td>
                     <Td>{emp.bank_account_number}</Td>
                     <Td>{emp.bank_ifsc_code}</Td>
                     <Td>{emp.bank_branch_name}</Td>
-
                     <Td>{emp.emergency_contact_name}</Td>
                     <Td>{emp.emergency_contact_phone}</Td>
                     <Td>{emp.emergency_contact_email}</Td>
                     <Td>{emp.emergency_contact_relation}</Td>
-
                     <Td long>{emp.hobbies}</Td>
                     <Td long>{emp.books_like_to_read}</Td>
                     <Td long>{emp.sports_you_play}</Td>
-
                     <Td>{emp.favourite_artist}</Td>
                     <Td>{emp.favourite_cuisine}</Td>
                     <Td long>{emp.favourite_movies_bollywood}</Td>
-
                     <Td>{emp.tshirt_size}</Td>
                     <Td>{emp.shoe_size}</Td>
-
                     <Td>{emp.police_verification}</Td>
                     <Td>{emp.police_station ?? "-"}</Td>
-                    <Td>
-                      <FileLink
-                        url={emp.police_report_url}
-                        label="Open"
-                      />
-                    </Td>
-
+                    <Td><FileLink url={emp.police_report_url} label="Open" /></Td>
                     <Td>{emp.has_medical_insurance}</Td>
                     <Td>{emp.medical_report_recent}</Td>
-                    <Td>
-                      <FileLink
-                        url={emp.medical_report_url}
-                        label="Open"
-                      />
-                    </Td>
+                    <Td><FileLink url={emp.medical_report_url} label="Open" /></Td>
                     <Td long>{emp.medical_issues ?? "-"}</Td>
-
-                    <Td>
-                      <FileLink
-                        url={emp.documents_url}
-                        label="Open"
-                      />
-                    </Td>
-                    <Td center>
-                      <ImagePreview
-                        url={emp.cheque_url}
-                        alt={`${emp.full_name} cheque`}
-                      />
-                    </Td>
+                    <Td><FileLink url={emp.documents_url} label="Open" /></Td>
+                    <Td><FileLink url={emp.cheque_url} label="Open" /></Td>
                   </tr>
                 ))}
               </tbody>
@@ -346,8 +278,7 @@ export default function EmployeeDetails() {
           </button>
 
           <div className="text-sm text-slate-700">
-            Showing {(page - 1) * limit + 1} - {Math.min(page * limit, total)} of{" "}
-            {total}
+            Showing {(page - 1) * limit + 1} - {Math.min(page * limit, total)} of {total}
           </div>
 
           <button
