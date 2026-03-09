@@ -20,7 +20,9 @@ function FileLink({
   url?: string | null;
   label: string;
 }) {
-  if (!url) return <span className="text-slate-400 text-xs">Not available</span>;
+  if (!url) {
+    return <span className="text-xs text-slate-400">Not available</span>;
+  }
 
   return (
     <a
@@ -34,9 +36,20 @@ function FileLink({
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({
+  children,
+  wide = false,
+}: {
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
   return (
-    <th className="px-3 py-3 text-left text-[12px] font-semibold whitespace-nowrap text-slate-700">
+    <th
+      className={[
+        "px-3 py-3 text-left text-[12px] font-semibold text-slate-700",
+        wide ? "min-w-[360px]" : "whitespace-nowrap",
+      ].join(" ")}
+    >
       {children}
     </th>
   );
@@ -44,21 +57,168 @@ function Th({ children }: { children: React.ReactNode }) {
 
 function Td({
   children,
-  long = false,
+  wide = false,
 }: {
   children: React.ReactNode;
-  long?: boolean;
+  wide?: boolean;
 }) {
   return (
     <td
       className={[
         "px-3 py-3 align-top text-[13px] text-slate-700",
-        long ? "max-w-[180px] break-words whitespace-normal" : "whitespace-nowrap",
+        wide ? "min-w-[360px]" : "whitespace-nowrap",
       ].join(" ")}
     >
       {children}
     </td>
   );
+}
+
+type QuickInfoTab = "address" | "bank" | "ids" | "family" | "other";
+
+const quickInfoTabs: { key: QuickInfoTab; label: string }[] = [
+  { key: "address", label: "Address" },
+  { key: "bank", label: "Bank" },
+  { key: "ids", label: "IDs" },
+  { key: "family", label: "Family" },
+  { key: "other", label: "Other" },
+];
+
+function InfoLine({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | null;
+}) {
+  const displayValue =
+    value && String(value).trim() !== "" ? String(value) : "-";
+
+  return (
+    <div className="text-[12px] leading-5 text-slate-700">
+      <span className="font-semibold text-slate-900">{label}: </span>
+      <span>{displayValue}</span>
+    </div>
+  );
+}
+
+function QuickInfoContent({
+  emp,
+  activeTab,
+}: {
+  emp: Employee;
+  activeTab: QuickInfoTab;
+}) {
+  if (activeTab === "address") {
+    return (
+      <div className="space-y-1">
+        <InfoLine label="Address" value={emp.address} />
+        <InfoLine label="City" value={emp.city} />
+        <InfoLine label="State" value={emp.state} />
+        <InfoLine label="Postal Code" value={emp.postal_code} />
+      </div>
+    );
+  }
+
+  if (activeTab === "bank") {
+    return (
+      <div className="space-y-1">
+        <InfoLine label="Account Holder" value={emp.bank_account_holder_name} />
+        <InfoLine label="Account Number" value={emp.bank_account_number} />
+        <InfoLine label="IFSC" value={emp.bank_ifsc_code} />
+        <InfoLine label="Branch" value={emp.bank_branch_name} />
+      </div>
+    );
+  }
+
+  if (activeTab === "ids") {
+    return (
+      <div className="space-y-1">
+        <InfoLine label="Aadhar Name" value={emp.aadhar_name} />
+        <InfoLine label="Aadhar Number" value={emp.aadhar_number} />
+        <InfoLine label="PAN Number" value={emp.pan_number} />
+        <InfoLine label="Passport Number" value={emp.passport_number} />
+        <InfoLine label="Passport Validity" value={emp.passport_validity} />
+      </div>
+    );
+  }
+
+  if (activeTab === "family") {
+    return (
+      <div className="space-y-1">
+        <InfoLine label="Father Name" value={emp.father_name} />
+        <InfoLine label="Mother Name" value={emp.mother_name} />
+        <InfoLine label="Siblings" value={emp.siblings} />
+        <InfoLine label="Local Guardian" value={emp.local_guardian} />
+        <InfoLine label="Emergency Name" value={emp.emergency_contact_name} />
+        <InfoLine label="Emergency Phone" value={emp.emergency_contact_phone} />
+        <InfoLine label="Emergency Email" value={emp.emergency_contact_email} />
+        <InfoLine
+          label="Relation"
+          value={emp.emergency_contact_relation}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <InfoLine label="Qualification" value={emp.latest_qualification} />
+      <InfoLine label="Hobbies" value={emp.hobbies} />
+      <InfoLine label="Books" value={emp.books_like_to_read} />
+      <InfoLine label="Sports" value={emp.sports_you_play} />
+      <InfoLine label="Favourite Artist" value={emp.favourite_artist} />
+      <InfoLine label="Favourite Cuisine" value={emp.favourite_cuisine} />
+      <InfoLine
+        label="Favourite Movies"
+        value={emp.favourite_movies_bollywood}
+      />
+      <InfoLine label="T-shirt Size" value={emp.tshirt_size} />
+      <InfoLine label="Shoe Size" value={emp.shoe_size} />
+      <InfoLine label="Police Verification" value={emp.police_verification} />
+      <InfoLine label="Police Station" value={emp.police_station} />
+      <InfoLine label="Medical Insurance" value={emp.has_medical_insurance} />
+      <InfoLine
+        label="Medical Report Recent"
+        value={emp.medical_report_recent}
+      />
+      <InfoLine label="Medical Issues" value={emp.medical_issues} />
+    </div>
+  );
+}
+
+function normalizeEmployeesResponse(data: any) {
+  if (Array.isArray(data?.items)) {
+    return {
+      items: data.items as Employee[],
+      total: typeof data.total === "number" ? data.total : data.items.length,
+      totalPages:
+        typeof data.totalPages === "number" ? data.totalPages : 1,
+    };
+  }
+
+  if (Array.isArray(data)) {
+    return {
+      items: data as Employee[],
+      total: data.length,
+      totalPages: 1,
+    };
+  }
+
+  if (Array.isArray(data?.data)) {
+    return {
+      items: data.data as Employee[],
+      total: typeof data.total === "number" ? data.total : data.data.length,
+      totalPages:
+        typeof data.totalPages === "number" ? data.totalPages : 1,
+    };
+  }
+
+  return {
+    items: [] as Employee[],
+    total: 0,
+    totalPages: 1,
+  };
 }
 
 export default function EmployeeDetails() {
@@ -74,6 +234,10 @@ export default function EmployeeDetails() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [activeTabs, setActiveTabs] = useState<Record<number, QuickInfoTab>>(
+    {}
+  );
 
   const params = useMemo(
     () => ({ page, limit, q: debouncedQ.trim() || undefined }),
@@ -91,9 +255,20 @@ export default function EmployeeDetails() {
         const data = await getEmployees(params);
 
         if (!mounted) return;
-        setItems(data.items);
-        setTotal(data.total);
-        setTotalPages(data.totalPages);
+
+        const normalized = normalizeEmployeesResponse(data);
+
+        setItems(normalized.items);
+        setTotal(normalized.total);
+        setTotalPages(normalized.totalPages);
+
+        setActiveTabs((prev) => {
+          const next = { ...prev };
+          for (const emp of normalized.items) {
+            if (!next[emp.id]) next[emp.id] = "address";
+          }
+          return next;
+        });
       } catch (e: any) {
         if (!mounted) return;
         setError(e?.message ?? "Failed to load employees");
@@ -165,104 +340,85 @@ export default function EmployeeDetails() {
                 <tr>
                   <Th>ID</Th>
                   <Th>Full Name</Th>
-                  <Th>Qualification</Th>
                   <Th>Email</Th>
                   <Th>Phone</Th>
-                  <Th>Address</Th>
-                  <Th>City</Th>
-                  <Th>State</Th>
-                  <Th>Postal Code</Th>
-                  <Th>Aadhar Name</Th>
-                  <Th>Aadhar Number</Th>
-                  <Th>Passport Number</Th>
-                  <Th>Passport Validity</Th>
-                  <Th>PAN Number</Th>
-                  <Th>Father Name</Th>
-                  <Th>Mother Name</Th>
-                  <Th>Siblings</Th>
-                  <Th>Local Guardian</Th>
-                  <Th>Bank Holder</Th>
-                  <Th>Bank Account</Th>
-                  <Th>IFSC</Th>
-                  <Th>Branch</Th>
-                  <Th>Emergency Name</Th>
-                  <Th>Emergency Phone</Th>
-                  <Th>Emergency Email</Th>
-                  <Th>Emergency Relation</Th>
-                  <Th>Hobbies</Th>
-                  <Th>Books</Th>
-                  <Th>Sports</Th>
-                  <Th>Favourite Artist</Th>
-                  <Th>Favourite Cuisine</Th>
-                  <Th>Favourite Movies</Th>
-                  <Th>T-shirt Size</Th>
-                  <Th>Shoe Size</Th>
-                  <Th>Police Verification</Th>
-                  <Th>Police Station</Th>
                   <Th>Police Report</Th>
-                  <Th>Medical Insurance</Th>
-                  <Th>Medical Report Recent</Th>
                   <Th>Medical Report</Th>
-                  <Th>Medical Issues</Th>
                   <Th>Documents</Th>
                   <Th>Cheque</Th>
+                  <Th wide>Quick Info</Th>
                 </tr>
               </thead>
 
               <tbody>
-                {items.map((emp, index) => (
-                  <tr
-                    key={emp.id}
-                    className={[
-                      "border-b border-slate-100 hover:bg-slate-50",
-                      index % 2 === 0 ? "bg-white" : "bg-slate-50/40",
-                    ].join(" ")}
-                  >
-                    <Td>{emp.id}</Td>
-                    <Td>{emp.full_name}</Td>
-                    <Td>{emp.latest_qualification}</Td>
-                    <Td>{emp.email}</Td>
-                    <Td>{emp.phone_number}</Td>
-                    <Td long>{emp.address}</Td>
-                    <Td>{emp.city}</Td>
-                    <Td>{emp.state}</Td>
-                    <Td>{emp.postal_code}</Td>
-                    <Td>{emp.aadhar_name}</Td>
-                    <Td>{emp.aadhar_number}</Td>
-                    <Td>{emp.passport_number ?? "-"}</Td>
-                    <Td>{emp.passport_validity ?? "-"}</Td>
-                    <Td>{emp.pan_number}</Td>
-                    <Td>{emp.father_name}</Td>
-                    <Td>{emp.mother_name}</Td>
-                    <Td>{emp.siblings}</Td>
-                    <Td>{emp.local_guardian}</Td>
-                    <Td>{emp.bank_account_holder_name}</Td>
-                    <Td>{emp.bank_account_number}</Td>
-                    <Td>{emp.bank_ifsc_code}</Td>
-                    <Td>{emp.bank_branch_name}</Td>
-                    <Td>{emp.emergency_contact_name}</Td>
-                    <Td>{emp.emergency_contact_phone}</Td>
-                    <Td>{emp.emergency_contact_email}</Td>
-                    <Td>{emp.emergency_contact_relation}</Td>
-                    <Td long>{emp.hobbies}</Td>
-                    <Td long>{emp.books_like_to_read}</Td>
-                    <Td long>{emp.sports_you_play}</Td>
-                    <Td>{emp.favourite_artist}</Td>
-                    <Td>{emp.favourite_cuisine}</Td>
-                    <Td long>{emp.favourite_movies_bollywood}</Td>
-                    <Td>{emp.tshirt_size}</Td>
-                    <Td>{emp.shoe_size}</Td>
-                    <Td>{emp.police_verification}</Td>
-                    <Td>{emp.police_station ?? "-"}</Td>
-                    <Td><FileLink url={emp.police_report_url} label="Open" /></Td>
-                    <Td>{emp.has_medical_insurance}</Td>
-                    <Td>{emp.medical_report_recent}</Td>
-                    <Td><FileLink url={emp.medical_report_url} label="Open" /></Td>
-                    <Td long>{emp.medical_issues ?? "-"}</Td>
-                    <Td><FileLink url={emp.documents_url} label="Open" /></Td>
-                    <Td><FileLink url={emp.cheque_url} label="Open" /></Td>
-                  </tr>
-                ))}
+                {items.map((emp, index) => {
+                  const activeTab = activeTabs[emp.id] ?? "address";
+
+                  return (
+                    <tr
+                      key={emp.id}
+                      className={[
+                        "border-b border-slate-100 hover:bg-slate-50",
+                        index % 2 === 0 ? "bg-white" : "bg-slate-50/40",
+                      ].join(" ")}
+                    >
+                      <Td>{emp.id}</Td>
+                      <Td>{emp.full_name}</Td>
+                      <Td>
+                        <div className="max-w-[220px] break-words whitespace-normal">
+                          {emp.email}
+                        </div>
+                      </Td>
+                      <Td>{emp.phone_number}</Td>
+                      <Td>
+                        <FileLink url={emp.police_report_url} label="Open" />
+                      </Td>
+                      <Td>
+                        <FileLink url={emp.medical_report_url} label="Open" />
+                      </Td>
+                      <Td>
+                        <FileLink url={emp.documents_url} label="Open" />
+                      </Td>
+                      <Td>
+                        <FileLink url={emp.cheque_url} label="Open" />
+                      </Td>
+                      <Td wide>
+                        <div className="min-w-[380px] rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <div className="mb-3 flex flex-wrap gap-2">
+                            {quickInfoTabs.map((tab) => {
+                              const isActive = activeTab === tab.key;
+
+                              return (
+                                <button
+                                  key={tab.key}
+                                  type="button"
+                                  onClick={() =>
+                                    setActiveTabs((prev) => ({
+                                      ...prev,
+                                      [emp.id]: tab.key,
+                                    }))
+                                  }
+                                  className={[
+                                    "rounded-lg px-3 py-1.5 text-xs font-medium transition",
+                                    isActive
+                                      ? "bg-blue-600 text-white"
+                                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100",
+                                  ].join(" ")}
+                                >
+                                  {tab.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="rounded-lg bg-white p-3">
+                            <QuickInfoContent emp={emp} activeTab={activeTab} />
+                          </div>
+                        </div>
+                      </Td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -270,7 +426,7 @@ export default function EmployeeDetails() {
 
         <div className="flex flex-col gap-3 border-t border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
           <button
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm disabled:opacity-50 hover:bg-slate-50"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
             disabled={loading || page <= 1}
             onClick={() => setPage((p) => p - 1)}
           >
@@ -278,11 +434,12 @@ export default function EmployeeDetails() {
           </button>
 
           <div className="text-sm text-slate-700">
-            Showing {(page - 1) * limit + 1} - {Math.min(page * limit, total)} of {total}
+            Showing {total === 0 ? 0 : (page - 1) * limit + 1} -{" "}
+            {Math.min(page * limit, total)} of {total}
           </div>
 
           <button
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm disabled:opacity-50 hover:bg-slate-50"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
             disabled={loading || page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
           >
