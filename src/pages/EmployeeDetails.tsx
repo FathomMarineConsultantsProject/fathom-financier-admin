@@ -380,8 +380,28 @@ export default function EmployeeDetails() {
                         <FileLink url={emp.documents_url} label="Open" />
                       </Td>
                       <Td>
-                        <FileLink url={emp.cheque_url} label="Open" />
-                      </Td>
+  {!emp.cheque_url ? (
+    <span className="text-slate-400 text-xs">Not available</span>
+  ) : (
+    <div className="flex gap-2">
+      <a
+        href={emp.cheque_url}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-100"
+      >
+        Open
+      </a>
+      <a
+        href={emp.cheque_url}
+        download
+        className="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100"
+      >
+        Download
+      </a>
+    </div>
+  )}
+</Td>
                       <Td wide>
                         <div className="min-w-[380px] rounded-xl border border-slate-200 bg-slate-50 p-3">
                           <div className="mb-3 flex flex-wrap gap-2">
